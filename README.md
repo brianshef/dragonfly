@@ -2,8 +2,6 @@
 
 A [Markov Chain](https://en.wikipedia.org/wiki/Markov_chain) generator based on song lyrics ( originally [Coheed and Cambria](https://www.coheedandcambria.com) ), written in Python 3. Also mixes in text from the artist's wiki page in order to give the sentences a better structure.
 
-Feel free to play around with the relative model weights!
-
 ## Prerequisites
 
 - Python 3.7+
@@ -24,10 +22,13 @@ Alternatively, set up a `.env` file with the environment variable set. `pipenv` 
 
 ```
 usage: main.py [-h] --artist ARTIST --wiki WIKI [--songs SONGS]
-               [--number NUMBER]
+               [--number NUMBER] [--lyric-weight LYRIC_WEIGHT]
+               [--wiki-weight WIKI_WEIGHT]
 
 A Markov Chain generator based on song lyrics. Also mixes in text from the
 artist Wikipedia page in order to give the sentences a better structure.
+Adjust the weights using the option to play with the relative amounts of
+material used in rendering the final model.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -35,6 +36,8 @@ optional arguments:
   --wiki WIKI, -w WIKI
   --songs SONGS, -s SONGS
   --number NUMBER, -n NUMBER
+  --lyric-weight LYRIC_WEIGHT, -p LYRIC_WEIGHT
+  --wiki-weight WIKI_WEIGHT, -q WIKI_WEIGHT
 
 Best invoked like pipenv run python main.py, OR pipenv run python main.py
 --artist "Coheed and Cambria" --wiki "Coheed_and_Cambria" | tee output.txt

@@ -13,6 +13,8 @@ _description='''
 A Markov Chain generator based on song lyrics.
 Also mixes in text from the artist Wikipedia page
 in order to give the sentences a better structure.
+Adjust the weights using the option to play with the
+relative amounts of material used in rendering the final model.
 '''
 _epilog='''
 Best invoked like pipenv run python main.py, OR
@@ -29,7 +31,7 @@ logging.getLogger(name=__name__)
 
 # LyricsGenius API
 TOKEN = environ.get('GENIUS_CLIENT_ACCESS_TOKEN')
-EXCLUDE = ['(Demo)', '(Live)', 'Remix', 'Acoustic']
+EXCLUDE = ['(Demo)', '(Live)', 'Remix', '(Mix)', 'Acoustic', 'Radio Edit', '(Edit)', '(Skit)', '(Instrumental)', '(Snippet)', '(Bootleg)']
 
 # Wikipedia API
 WIKI_LANG = 'en'
@@ -117,19 +119,13 @@ def get_model(model_name, config):
     
 def main(config):
     logging.info(config)
+
     lyric_model = get_model(LYRIC_MODEL_NAME, config)
     wiki_model = get_model(WIKI_MODEL_NAME, config)
-    logging.debug('{}={}, {}={}'.format(
-        'LYRICS model', type(lyric_model),
-        'WIKI model', type(wiki_model)
-    ))
     
-    lyric_model_weight = 1
-    wiki_model_weight = 1.1
-
     model = markovify.combine(
         [lyric_model, wiki_model],
-        [lyric_model_weight, wiki_model_weight]
+        [config.lyric_weight, config.wiki_weight]
     )
     
     for _ in range(config.number):
@@ -142,6 +138,8 @@ def configure():
     parser.add_argument('--wiki', '-w', required=True)
     parser.add_argument('--songs', '-s', default=20, required=False, type=int)
     parser.add_argument('--number', '-n', default=10, required=False, type=int)
+    parser.add_argument('--lyric-weight', '-p', default=1.0, required=False, type=float)
+    parser.add_argument('--wiki-weight', '-q', default=0.0, required=False, type=float)
     return parser.parse_args()
 
 
