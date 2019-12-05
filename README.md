@@ -1,6 +1,6 @@
 # dragonfly
 
-A [Markov Chain](https://en.wikipedia.org/wiki/Markov_chain) generator based on [Coheed and Cambria](https://www.coheedandcambria.com) song lyrics, written in Python 3. Also mixes in text from _Coheed and Cambria_'s [Wikipedia page](https://en.wikipedia.org/wiki/Coheed_and_Cambria) in order to give the sentences a better structure.
+A [Markov Chain](https://en.wikipedia.org/wiki/Markov_chain) generator based on song lyrics ( originally [Coheed and Cambria](https://www.coheedandcambria.com) ), written in Python 3. Also mixes in text from the artist's wiki page in order to give the sentences a better structure.
 
 Feel free to play around with the relative model weights!
 
@@ -23,10 +23,26 @@ Alternatively, set up a `.env` file with the environment variable set. `pipenv` 
 ## Running
 
 ```
-pipenv run python main.py
+usage: main.py [-h] --artist ARTIST --wiki WIKI [--songs SONGS]
+               [--number NUMBER]
+
+A Markov Chain generator based on song lyrics. Also mixes in text from the
+artist Wikipedia page in order to give the sentences a better structure.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --artist ARTIST, -a ARTIST
+  --wiki WIKI, -w WIKI
+  --songs SONGS, -s SONGS
+  --number NUMBER, -n NUMBER
+
+Best invoked like pipenv run python main.py, OR pipenv run python main.py
+--artist "Coheed and Cambria" --wiki "Coheed_and_Cambria" | tee output.txt
 ```
 
-### Example Output
+Pro tip -- recommend using at least 100 songs ( `--songs 100` ) for best results!
+
+### Example Output (Coheed and Cambria)
 
 ```
 SO RUN, LITTLE CHILDREN, PLAY I'LL LEAVE THE LIGHT OH, CAN YOU HEAR ME?

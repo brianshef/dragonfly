@@ -1,4 +1,5 @@
 #!/bin/python
+import argparse
 import markovify
 import lyricsgenius
 import wikipediaapi
@@ -6,6 +7,17 @@ import wikipediaapi
 import json
 import logging
 from os import environ
+
+# argparse
+_description='''
+A Markov Chain generator based on song lyrics.
+Also mixes in text from the artist Wikipedia page
+in order to give the sentences a better structure.
+'''
+_epilog='''
+Best invoked like pipenv run python main.py, OR
+pipenv run python main.py --artist "Coheed and Cambria" --wiki "Coheed_and_Cambria" | tee output.txt
+'''
 
 # Logging
 LOGLEVEL = environ.get('LOG_LEVEL', 'INFO').upper()
@@ -17,31 +29,28 @@ logging.getLogger(name=__name__)
 
 # LyricsGenius API
 TOKEN = environ.get('GENIUS_CLIENT_ACCESS_TOKEN')
-ARTIST = 'Coheed and Cambria'
-MAX_SONGS = 110
-EXCLUDE = ['(Demo)', '(Live)', 'Remix', 'Acoustic', 'Beer Drinkers']
+EXCLUDE = ['(Demo)', '(Live)', 'Remix', 'Acoustic']
 
 # Wikipedia API
-WIKI_PAGE = 'Coheed_and_Cambria'
 WIKI_LANG = 'en'
 XFORMAT = wikipediaapi.ExtractFormat.WIKI
 
 # Markov Chain
 LYRIC_MODEL_NAME = 'lyrics.json'
 WIKI_MODEL_NAME = 'wiki.json'
-NUM_SENTENCES = 10
-MAX_LENGTH = 280
+MAX_LENGTH = 210
 
 
-def get_wiki_page_text(page=WIKI_PAGE, lang=WIKI_LANG):
+def get_wiki_page_text(config, lang=WIKI_LANG):
+    logging.info('Getting {} wiki data for {}'.format(lang, config.wiki))
     wiki = wikipediaapi.Wikipedia(language=lang, extract_format=XFORMAT)
-    page = wiki.page(page)
+    page = wiki.page(config.wiki)
     if not page.exists():
         raise Exception('wiki page {} does not exist'.format(page))
     return page.text.upper()
 
 
-def init_lg_client():
+def lg_client():
     genius = lyricsgenius.Genius(TOKEN)
     genius.remove_section_headers = True
     genius.skip_non_songs = True
@@ -49,23 +58,26 @@ def init_lg_client():
     return genius
 
 
-def get_lyrics(client):
+def get_lyrics(client, config):
     data = []
-    artist = client.search_artist(ARTIST, max_songs=MAX_SONGS, sort="title")
+    logging.info('Getting up to {} songs of lyric info for {}'.format(config.songs, config.artist))
+    artist = client.search_artist(config.artist, max_songs=config.songs, sort="title")
     for song in artist.songs:
-        data.append(song.lyrics.upper())
+        try:
+            data.append(song.lyrics.upper())
+        except Exception as e:
+            logging.warn('error getting lyrics from song {}: {}'.format(song, e))
     return data
 
 
-def generate_lyric_model():
-    genius = init_lg_client()
-    lyrics = get_lyrics(genius)
+def generate_lyric_model(config):
+    lyrics = get_lyrics(lg_client(), config)
     lyric_model = markovify.Text(''.join(lyrics))
     return lyric_model.to_json()
 
 
-def generate_wiki_model():
-    wikitext = get_wiki_page_text()
+def generate_wiki_model(config):
+    wikitext = get_wiki_page_text(config)
     wiki_model = markovify.Text(wikitext)
     return wiki_model.to_json()
 
@@ -88,40 +100,51 @@ def load_model(filename):
     return model
 
 
-def get_model(model_name):
+def get_model(model_name, config):
     model = load_model(model_name)
     if model is not None:
         return model
     
     model_json = {}
     if model_name == LYRIC_MODEL_NAME:
-        model_json = generate_lyric_model()
+        model_json = generate_lyric_model(config)
     elif model_name == WIKI_MODEL_NAME:
-        model_json = generate_wiki_model()
+        model_json = generate_wiki_model(config)
 
     save_model(model_json, model_name)
     return markovify.Text.from_json(model_json)
 
     
-def main():
-    lyric_model = get_model(LYRIC_MODEL_NAME)
-    wiki_model = get_model(WIKI_MODEL_NAME)
+def main(config):
+    logging.info(config)
+    lyric_model = get_model(LYRIC_MODEL_NAME, config)
+    wiki_model = get_model(WIKI_MODEL_NAME, config)
     logging.debug('{}={}, {}={}'.format(
         'LYRICS model', type(lyric_model),
         'WIKI model', type(wiki_model)
     ))
     
     lyric_model_weight = 1
-    wiki_model_weight = 1.4
+    wiki_model_weight = 1.1
 
     model = markovify.combine(
         [lyric_model, wiki_model],
         [lyric_model_weight, wiki_model_weight]
     )
     
-    for _ in range(NUM_SENTENCES):
+    for _ in range(config.number):
         print('\n{}'.format(model.make_short_sentence(MAX_LENGTH)))
 
 
+def configure():
+    parser = argparse.ArgumentParser(description=_description, epilog=_epilog)
+    parser.add_argument('--artist', '-a', required=True)
+    parser.add_argument('--wiki', '-w', required=True)
+    parser.add_argument('--songs', '-s', default=20, required=False, type=int)
+    parser.add_argument('--number', '-n', default=10, required=False, type=int)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    main()
+    config = configure()
+    main(config)
