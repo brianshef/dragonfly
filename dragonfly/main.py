@@ -27,8 +27,12 @@ def configure():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main():
     app.main(
         configure(), 
         environ.get('GENIUS_CLIENT_ACCESS_TOKEN')
     )
+    
+
+if __name__ == "__main__":
+    main()

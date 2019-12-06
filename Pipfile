@@ -8,6 +8,7 @@ markovify = "*"
 lyricsgenius = "*"
 wikipedia-api = "*"
 argparse = "*"
+setuptools = "*"
 
 [dev-packages]
 
