@@ -18,12 +18,22 @@ Alternatively, set up a `.env` file with the environment variable set. `pipenv` 
 
 ```
 pipenv run python setup.py install
+
+pipenv install
 ```
 
 ## Run It
 
 ```
 pipenv run dragonfly
+```
+
+### Or using the Docker image...
+
+```
+docker build -t dragonfly .
+
+docker run -it dragonfly
 ```
 
 
