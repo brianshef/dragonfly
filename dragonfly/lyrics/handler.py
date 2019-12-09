@@ -1,7 +1,8 @@
 import lyricsgenius
 
-EXCLUDE = ['(Demo)', '(Live)', 'Remix', '(Mix)', 'Acoustic', 'Radio Edit', '(Edit)', '(Skit)', '(Instrumental)', '(Snippet)', '(Bootleg)']
+from . import exclude
 
+EXCLUDE = exclude.EXCLUDE
 
 class Handler():
     def __init__(self, config, token):

@@ -1,0 +1,17 @@
+EXCLUDE = [
+    '(Demo)',
+    '(Live)',
+    'Remix',
+    'Remaster',
+    'Remastered',
+    'Remake',
+    '(Mix)',
+    'Acoustic',
+    'Orchestral',
+    'Radio Edit',
+    '(Edit)',
+    '(Skit)',
+    '(Instrumental)',
+    '(Snippet)',
+    '(Bootleg)',
+]
